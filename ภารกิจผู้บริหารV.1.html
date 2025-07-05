@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ตารางภารกิจผู้บริหาร</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    body {
+      font-family: 'Sarabun', sans-serif;
+      margin: 0;
+      background: #f5f5f5;
+    }
+    header {
+      background-color: #642e9a;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    header button {
+      background-color: #ffc107;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 4px;
+      margin: 4px;
+      cursor: pointer;
+    }
+    #controls, #filters {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin: 1rem;
+      flex-wrap: wrap;
+    }
+    .filter-btn.active {
+      background: #007bff;
+      color: white;
+    }
+    .task {
+      background: #f1f1f1;
+      border-left: 6px solid #007bff;
+      padding: 0.5rem;
+      border-radius: 4px;
+      margin: 0.5rem 0;
+      cursor: pointer;
+    }
+    .task small {
+      display: block;
+      font-size: 0.85em;
+      color: #555;
+    }
+    #schedule-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .day-column {
+      flex: 1 1 280px;
+      background: white;
+      border-radius: 6px;
+      border: 2px solid #ccc;
+      padding: 0.5rem;
+    }
+    .day-header {
+      font-weight: bold;
+      color: rgb(26, 15, 15);
+      text-align: center;
+      padding: 0.4rem;
+      border-radius: 4px 4px 0 0;
+    }
+    .sunday    { background: #f08080; }
+    .monday    { background: #fff176; }
+    .tuesday   { background: #ffb3ba; }
+    .wednesday { background: #dcedc8; }
+    .thursday  { background: #ffd59a; }
+    .friday    { background: #b3e5fc; }
+    .saturday  { background: #d1c4e9; }
+
+    .calendar-month table {
+  border-collapse: collapse;
+  width: 100%;
+  background: #fff;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.03);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.calendar-month th {
+  background: #cce7ff;
+  color: #003f6b;
+  padding: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 1px solid #b0d6f5;
+}
+
+.calendar-month td {
+  border: 1px solid #e8f3fc;
+  vertical-align: top;
+  height: 120px;
+  padding: 8px;
+  background: #fdfdff;
+  transition: background 0.3s;
+}
+
+.calendar-month td:hover {
+  background: #eef8ff;
+}
+
+.calendar-month td strong {
+  display: block;
+  text-align: right;
+  font-size: 0.85em;
+  color: #888;
+}
+
+.calendar-month .task-entry {
+  background: #ecf7ff;
+  border-left: 4px solid #81d4fa;
+  padding: 4px 6px;
+  margin: 4px 0;
+  border-radius: 6px;
+  font-size: 0.85em;
+  color: #333;
+  box-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+  cursor: pointer;
+}
+
+    .color-swatch {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      margin: 4px;
+      cursor: pointer;
+      border: 2px solid #ccc;
+    }
+    .color-swatch.active {
+      border: 3px solid black;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      width: 95%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-content label {
+      font-weight: bold;
+    }
+    .modal-content input,
+    .modal-content textarea {
+      width: 100%;
+      padding: 0.5rem;
+      margin: 0.25rem 0 0.75rem;
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    .modal-footer button {
+      flex: 1;
+      padding: 0.5rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-primary { background: #28a745; color: white; }
+    .btn-danger  { background: #dc3545; color: white; }
+    .btn-cancel  { background: #6c757d; color: white; }
+
+    @media (max-width: 768px) {
+      #schedule-container {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- ส่วน header, ปุ่มควบคุม, modal, และ script จะตามมาในกล่องถัดไปครับ -->
+   <body>
+  <header>
+    <h1>ตารางภารกิจผู้บริหาร</h1>
+    <button onclick="captureTable()">📷 บันทึกตาราง</button>
+    <button onclick="toggleView()">🔄 สลับมุมมอง</button>
+  </header>
+
+  <div id="date-today"></div>
+  <div id="print-title" style="display:none;">ภารกิจผู้บริหาร</div>
+  <div id="print-subtitle" style="display:none;"></div>
+  <div id="mode-label">โหมด: <span id="current-mode">รายวัน</span></div>
+
+  <!-- 🔘 ปุ่มนำทาง -->
+ <div id="controls">
+  <button onclick="goPrevDay()">← ย้อนวัน</button>
+  <button onclick="goNextDay()">ถัดไป →</button>
+  <button onclick="goPrevMonth()">← ย้อนเดือน</button>
+  <button onclick="goNextMonth()">เดือนถัดไป →</button>
+  <button onclick="toggleWeekend()">❌ ซ่อนวันหยุด</button>
+  <button onclick="openModal()">➕ เพิ่มภารกิจ</button>
+</div>
+
+  <!-- 🧭 ปุ่มตัวกรองหมวดหมู่ -->
+  <div id="filters">
+    <button class="filter-btn" onclick="setCategoryFilter('all')">ทั้งหมด</button>
+    <button class="filter-btn" onclick="setCategoryFilter('onsite')">ภารกิจภายใน</button>
+    <button class="filter-btn" onclick="setCategoryFilter('offsite')">นอกสถานที่</button>
+  </div>
+
+  <!-- 📅 พื้นที่ตาราง -->
+  <section id="schedule-container"></section>
+
+  <!-- 💼 Modal ฟอร์มภารกิจ -->
+  <div class="modal" id="taskModal">
+    <div class="modal-content">
+      <h2 id="modal-title">เพิ่มภารกิจ</h2>
+      <form id="task-form">
+        <input type="hidden" id="edit-id" />
+        <label>ชื่อภารกิจ</label>
+        <input type="text" id="task-title" required />
+
+        <label>วันที่</label>
+        <input type="date" id="start-date" required />
+
+        <label>เวลาเริ่ม (เช่น 09:00)</label>
+        <input type="text" id="start-time" required />
+
+        <label>เวลาเสร็จ (ไม่จำเป็น)</label>
+        <input type="text" id="end-time" />
+
+        <label>สถานที่</label>
+        <input type="text" id="location" required />
+
+        <label>ผู้ปฏิบัติ</label>
+        <input type="text" id="assigned" />
+
+        <label>มอบหมายโดย</label>
+        <input type="text" id="delegated" />
+
+        <label>รายละเอียดเพิ่มเติม</label>
+        <textarea id="details" rows="3"></textarea>
+
+        <label>สีขอบภารกิจ</label>
+        <div id="color-picker">
+          <span class="color-swatch" data-color="#e53935" style="background:#e53935;"></span>
+          <span class="color-swatch" data-color="#fb8c00" style="background:#fb8c00;"></span>
+          <span class="color-swatch" data-color="#fdd835" style="background:#fdd835;"></span>
+          <span class="color-swatch" data-color="#43a047" style="background:#43a047;"></span>
+          <span class="color-swatch" data-color="#1e88e5" style="background:#1e88e5;"></span>
+          <span class="color-swatch" data-color="#8e24aa" style="background:#8e24aa;"></span>
+          <span class="color-swatch" data-color="#6d4c41" style="background:#6d4c41;"></span>
+        </div>
+        <input type="hidden" id="color" value="#1e88e5" />
+
+        <label><input type="checkbox" id="offsite-toggle" /> ภารกิจนอกสถานที่</label>
+
+        <div id="offsite-fields" style="display: none;">
+          <input type="text" id="car-number" placeholder="ทะเบียนรถ" />
+          <input type="text" id="driver" placeholder="ชื่อพลขับ" />
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn-primary">💾 บันทึก</button>
+          <button type="button" class="btn-danger" id="delete-task-btn" style="display:none;">🗑️ ลบ</button>
+          <button type="button" class="btn-cancel" onclick="closeModal()">ยกเลิก</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 🌟 HTML2Canvas สำหรับ export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  
+  <script>
+    
+  const $ = (id) => document.getElementById(id);
+  const taskModal = $("taskModal");
+  const taskForm = $("task-form");
+  const deleteBtn = $("delete-task-btn");
+
+  let tasks = JSON.parse(localStorage.getItem("executive-tasks") || "[]");
+  let baseDate = new Date();
+  let hideWeekend = false;
+  let viewMode = "daily";
+  let editingTaskId = null;
+  let categoryFilter = "all";
+  const holidays = {
+  "2025-01-01": "วันขึ้นปีใหม่",
+  "2025-02-12": "วันมาฆบูชา",
+  "2025-04-06": "วันจักรี",
+  "2025-04-13": "วันสงกรานต์",
+  "2025-04-14": "วันสงกรานต์",
+  "2025-04-15": "วันสงกรานต์",
+  "2025-05-01": "วันแรงงานแห่งชาติ",
+  "2025-05-04": "วันฉัตรมงคล",
+  "2025-05-11": "วันวิสาขบูชา",
+  "2025-07-10": "วันอาสาฬหบูชา",
+  "2025-07-11": "วันเข้าพรรษา",
+  "2025-07-28": "วันเฉลิมพระชนมพรรษา ร.10",
+  "2025-08-12": "วันแม่แห่งชาติ",
+  "2025-10-13": "วันนวมินทรมหาราช",
+  "2025-10-23": "วันปิยมหาราช",
+  "2025-12-05": "วันพ่อแห่งชาติ",
+  "2025-12-10": "วันรัฐธรรมนูญ",
+  "2025-12-31": "วันสิ้นปี",
+  "2026-01-01": "วันขึ้นปีใหม่",
+  "2026-02-01": "วันมาฆบูชา",
+  "2026-04-06": "วันจักรี",
+  "2026-04-13": "วันสงกรานต์",
+  "2026-04-14": "วันสงกรานต์",
+  "2026-04-15": "วันสงกรานต์",
+  "2026-05-01": "วันแรงงานแห่งชาติ",
+  "2026-05-05": "วันฉัตรมงคล",
+  "2026-05-22": "วันวิสาขบูชา",
+  "2026-07-27": "วันอาสาฬหบูชา",
+  "2026-07-28": "วันเข้าพรรษา",
+  "2026-07-28": "วันเฉลิมพระชนมพรรษา ร.10",  // ปีนี้ตรงวันเดียวกัน
+  "2026-08-12": "วันแม่แห่งชาติ",
+  "2026-10-13": "วันนวมินทรมหาราช",
+  "2026-10-23": "วันปิยมหาราช",
+  "2026-12-05": "วันพ่อแห่งชาติ",
+  "2026-12-10": "วันรัฐธรรมนูญ",
+  "2026-12-31": "วันสิ้นปี"
+
+};
+
+
+
+  function saveTasks() {
+    localStorage.setItem("executive-tasks", JSON.stringify(tasks));
+  }
+
+  function openModal(id = null) {
+    taskForm.reset();
+    $("offsite-fields").style.display = "none";
+    $("modal-title").textContent = id ? "แก้ไขภารกิจ" : "เพิ่มภารกิจ";
+    deleteBtn.style.display = id ? "inline-block" : "none";
+    document.querySelectorAll(".color-swatch").forEach(s => s.classList.remove("active"));
+    if (id) {
+      const t = tasks.find(x => x.id === id);
+      if (!t) return;
+      $("edit-id").value = t.id;
+      $("task-title").value = t.title;
+      $("start-date").value = t.date;
+      $("start-time").value = t.start;
+      $("end-time").value = t.end || "";
+      $("location").value = t.location;
+      $("assigned").value = t.assigned;
+      $("delegated").value = t.delegated;
+      $("details").value = t.details;
+      $("offsite-toggle").checked = t.offsite;
+      $("car-number").value = t.carNumber || "";
+      $("driver").value = t.driver || "";
+      $("color").value = t.color || "#1e88e5";
+      $("offsite-fields").style.display = t.offsite ? "block" : "none";
+      const activeSwatch = document.querySelector(`.color-swatch[data-color='${t.color}']`);
+      if (activeSwatch) activeSwatch.classList.add("active");
+      editingTaskId = id;
+    } else {
+      $("color").value = "#1e88e5";
+      const defSwatch = document.querySelector(`.color-swatch[data-color='#1e88e5']`);
+      if (defSwatch) defSwatch.classList.add("active");
+      editingTaskId = null;
+    }
+    taskModal.style.display = "flex";
+  }
+
+  function closeModal() {
+    taskModal.style.display = "none";
+  }
+
+  $("offsite-toggle").addEventListener("change", function () {
+    $("offsite-fields").style.display = this.checked ? "block" : "none";
+  });
+
+  document.querySelectorAll(".color-swatch").forEach(swatch => {
+    swatch.addEventListener("click", () => {
+      document.querySelectorAll(".color-swatch").forEach(s => s.classList.remove("active"));
+      swatch.classList.add("active");
+      $("color").value = swatch.dataset.color;
+    });
+  });
+
+  taskForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    const t = {
+      id: $("edit-id").value || Date.now().toString(),
+      title: $("task-title").value,
+      start: $("start-time").value,
+      end: $("end-time").value || null,
+      date: $("start-date").value,
+      location: $("location").value,
+      assigned: $("assigned").value,
+      delegated: $("delegated").value,
+      details: $("details").value,
+      offsite: $("offsite-toggle").checked,
+      carNumber: $("car-number").value,
+      driver: $("driver").value,
+      color: $("color").value || "#1e88e5"
+    };
+    if (editingTaskId) {
+      tasks = tasks.map(x => x.id === editingTaskId ? t : x);
+    } else {
+      tasks.push(t);
+    }
+    saveTasks();
+    closeModal();
+    renderSchedule();
+  });
+
+  deleteBtn.addEventListener("click", () => {
+    if (confirm("คุณแน่ใจหรือไม่ว่าต้องการลบภารกิจนี้?")) {
+      tasks = tasks.filter(x => x.id !== editingTaskId);
+      saveTasks();
+      closeModal();
+      renderSchedule();
+    }
+  });
+
+  function setCategoryFilter(mode) {
+    categoryFilter = mode;
+    document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active"));
+    document.querySelector(`.filter-btn[onclick*="${mode}"]`).classList.add("active");
+    renderSchedule();
+  }
+
+  function shouldShowTask(task) {
+    if (categoryFilter === "all") return true;
+    if (categoryFilter === "offsite") return task.offsite;
+    if (categoryFilter === "onsite") return !task.offsite;
+    return true;
+  }
+
+  function formatTimeOnly(t) {
+    return t.padStart(5, "0");
+  }
+
+  function renderSchedule() {
+    const container = $("schedule-container");
+    container.innerHTML = "";
+    $("current-mode").textContent = viewMode === "daily" ? "รายวัน" : "รายเดือน";
+    if (viewMode === "daily") {
+      renderDailyView();
+    } else {
+      renderMonthlyView();
+      
+    }
+  }
+
+  function renderDailyView() {
+  let html = "";
+  let shown = 0, offset = 0;
+
+  while (shown < 3) {
+    const d = new Date(baseDate);
+    d.setDate(d.getDate() + offset);
+    const day = d.getDay();
+    if (hideWeekend && (day === 0 || day === 6)) {
+      offset++;
+      continue;
+    }
+
+    const dateStr = d.toLocaleDateString("sv-SE");
+    const dayLabel = d.toLocaleDateString("th-TH", {
+      weekday: "long", day: "numeric", month: "long", year: "numeric"
+    });
+    const dayCls = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"][day];
+    const filtered = tasks.filter(t => t.date === dateStr && shouldShowTask(t));
+    const holiday = holidays[dateStr]; // ✅ เช็กวันหยุด
+
+    html += `<div class="day-column"><div class="day-header ${dayCls}">${dayLabel}</div>`;
+
+    // ✅ ถ้าเป็นวันหยุด ให้แสดงกล่องพิเศษก่อนภารกิจ
+    if (holiday) {
+      html += `<div class="task-entry" style="background:#ffe0e0; border-left-color:#e53935; margin-bottom:0.5rem;">
+        🏖️ ${holiday}
+      </div>`;
+    }
+
+    html += filtered.map(t => `
+      <div class="task" style="border-left-color:${t.color || '#1e88e5'}" onclick="openModal('${t.id}')">
+        📝 ${t.title}
+        <small>📅 เวลา: ${formatTimeOnly(t.start)}</small>
+        <small>📍 สถานที่: ${t.location}</small>
+        ${t.assigned ? `<small>👤 ผู้ปฏิบัติ: ${t.assigned}</small>` : ""}
+        ${t.delegated ? `<small>🤝 มอบ: ${t.delegated}</small>` : ""}
+        ${t.details ? `<small>🧾 รายละเอียด: ${t.details}</small>` : ""}
+        ${t.offsite ? `<small>🚗 นอกสถานที่: ${t.carNumber || ""} ${t.driver ? "/ 🧑‍✈️ " + t.driver : ""}</small>` : ""}
+      </div>`).join("");
+
+    html += filtered.length === 0 && !holiday ? "<p>ไม่มีภารกิจ</p></div>" : "</div>";
+
+    offset++;
+    shown++;
+  }
+
+  $("schedule-container").innerHTML = html;
+}
+  
+  
+
+  function renderMonthlyView() {
+  const now = new Date(baseDate), y = now.getFullYear(), m = now.getMonth();
+  const first = new Date(y, m, 1), last = new Date(y, m + 1, 0);
+  const startDay = first.getDay();
+  const container = $("schedule-container");
+
+  const monthName = now.toLocaleDateString("th-TH", { month: "long", year: "numeric" });
+  let html = `<div class="calendar-month">
+    <h2 style="text-align:center; margin:0.5rem 0;">${monthName}</h2>
+    <table>
+      <thead><tr>
+        <th>อา</th><th>จ</th><th>อ</th><th>พ</th><th>พฤ</th><th>ศ</th><th>ส</th>
+      </tr></thead><tbody><tr>`;
+
+  let day = 1;
+  for (let i = 0; i < startDay; i++) html += "<td></td>";
+  for (let i = startDay; day <= last.getDate(); i++) {
+    if (i % 7 === 0 && i !== 0) html += "</tr><tr>";
+    const full = new Date(y, m, day).toLocaleDateString("sv-SE");
+
+    const list = tasks.filter(t => t.date === full && shouldShowTask(t));
+    const holiday = holidays[full];
+
+    html += `<td><strong>${day}</strong>`;
+    if (holiday) {
+      html += `<div class="task-entry" style="background:#ffe0e0; border-left-color:#e53935;">
+        🏖️ ${holiday}
+      </div>`;
+    }
+    list.forEach(t => {
+      const timeOnly = t.start.includes("T") ? t.start.split("T")[1].slice(0,5) : t.start;
+      html += `<div class="task-entry" style="border-left-color:${t.color || '#2196f3'}" onclick="openModal('${t.id}')">
+        ⏰ ${timeOnly} ${t.title}
+      </div>`;
+    });
+    html += `</td>`;
+    day++;
+  }
+
+  html += `</tr></tbody></table></div>`;
+  container.innerHTML = html;
+
+  // active ปุ่มเดือน
+  document.querySelectorAll(".month-btn").forEach(btn => {
+    btn.classList.remove("active");
+    if (parseInt(btn.dataset.month) === m) {
+      btn.classList.add("active");
+    }
+  });
+}
+
+  function goNextDay() {
+    baseDate.setDate(baseDate.getDate() + 1);
+    renderSchedule();
+  }
+
+  function goPrevDay() {
+    baseDate.setDate(baseDate.getDate() - 1);
+    renderSchedule();
+  }
+  function goNextMonth() {
+  baseDate.setMonth(baseDate.getMonth() + 1);
+  renderSchedule();
+  }
+
+  function goPrevMonth() {
+  baseDate.setMonth(baseDate.getMonth() - 1);
+  renderSchedule();
+  }
+
+  function toggleWeekend() {
+    hideWeekend = !hideWeekend;
+    renderSchedule();
+  }
+
+  function toggleView() {
+    
+        viewMode = viewMode === "daily" ? "monthly" : "daily";
+    renderSchedule();
+  }
+
+  function captureTable() {
+    $("print-title").style.display = "block";
+    $("print-subtitle").style.display = "block";
+    const now = new Date();
+    $("print-subtitle").textContent = now.toLocaleDateString("th-TH", {
+      weekday: "long", day: "numeric", month: "long", year: "numeric"
+    });
+
+    html2canvas($("schedule-container")).then(canvas => {
+      const titleCanvas = document.createElement("canvas");
+      const ctx = titleCanvas.getContext("2d");
+      titleCanvas.width = canvas.width;
+      titleCanvas.height = 90;
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, titleCanvas.width, titleCanvas.height);
+      ctx.fillStyle = "#000";
+      ctx.font = "bold 28px Sarabun";
+      ctx.textAlign = "center";
+      ctx.fillText("ภารกิจผู้บริหาร", titleCanvas.width / 2, 35);
+      ctx.font = "20px Sarabun";
+      ctx.fillText($("print-subtitle").textContent, titleCanvas.width / 2, 70);
+
+      const finalCanvas = document.createElement("canvas");
+      finalCanvas.width = canvas.width;
+      finalCanvas.height = titleCanvas.height + canvas.height;
+
+      const ctx2 = finalCanvas.getContext("2d");
+      ctx2.drawImage(titleCanvas, 0, 0);
+      ctx2.drawImage(canvas, 0, titleCanvas.height);
+
+      const link = document.createElement("a");
+      link.download = `ตารางภารกิจ-${Date.now()}.png`;
+      link.href = finalCanvas.toDataURL();
+      link.click();
+
+      $("print-title").style.display = "none";
+      $("print-subtitle").style.display = "none";
+    });
+  }
+
+  // แสดงวันที่วันนี้ที่หัวหน้าเพจ
+  const now = new Date();
+  $("date-today").textContent = now.toLocaleDateString("th-TH", {
+    weekday: "long", day: "numeric", month: "long", year: "numeric"
+  });
+  
+
+  // เริ่มระบบ
+  renderSchedule();
+  const dateToday = new Date(baseDate);
+$("date-today").textContent =
+  viewMode === "daily"
+    ? dateToday.toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
+    : dateToday.toLocaleDateString("th-TH", { month: "long", year: "numeric" });
+</script>
+</body>
+</html>
