@@ -4,11 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ตารางภารกิจผู้บริหาร</title>
-
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-
-  <style>
+  <style>   
     body {
       font-family: 'Sarabun', sans-serif;
       margin: 0;
@@ -195,11 +193,12 @@
         align-items: center;
       }
     }
+ 
   </style>
 </head>
 <body>
-  
-  <!-- ส่วน header, ปุ่มควบคุม, modal, และ script จะตามมาในกล่องถัดไปครับ -->
+
+ <!-- ส่วน header, ปุ่มควบคุม, modal, และ script จะตามมาในกล่องถัดไปครับ -->
    <body>
   <header>
     <h1>ตารางภารกิจผู้บริหาร</h1>
@@ -290,10 +289,11 @@
     </div>
   </div>
 
-  <!-- 🌟 HTML2Canvas สำหรับ export -->
+  <!-- HTML2Canvas สำหรับ export เป็นภาพ -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  
-  <script>
+
+  <!-- ✅ สคริปต์เชื่อม Google Sheets + แสดงตาราง -->
+   <script>
     
   const $ = (id) => document.getElementById(id);
   const taskModal = $("taskModal");
@@ -426,6 +426,7 @@
       tasks.push(t);
     }
     saveTasks();
+    sendTaskToSheet(t);
     closeModal();
     renderSchedule();
   });
@@ -656,28 +657,41 @@ $("date-today").textContent =
   viewMode === "daily"
     ? dateToday.toLocaleDateString("th-TH", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
     : dateToday.toLocaleDateString("th-TH", { month: "long", year: "numeric" });
-    document.getElementById("taskForm").addEventListener("submit", function (e) {
-  e.preventDefault();
-
-  const formData = new FormData(e.target);
-  const data = Object.fromEntries(formData.entries());
-
-  fetch("https://schttps://script.google.com/macros/s/AKfycbxUbE9FBweVQ8TDfit7r2TdlOKay7QIAFHYLGhFR6suuw0gzJR0p05Y8uRmx9lT-9vz/execript.google.com/macros/s/YOUR_SCRIPT_ID/exec", {
+   
+    //ส่งเข้าชีต
+ function sendTaskToSheet(t) {
+  fetch("https://script.google.com/macros/s/AKfycbz7A5ZWfYNPYFEUFhzLfR9xrzvBC_RpBTWxIRia9RIbD8b4-rj9h9_ANAMlrwzLDJKDOA/exec", {
     method: "POST",
-    body: JSON.stringify(data),
-    headers: {
-      "Content-Type": "application/json"
-    }
+    body: JSON.stringify(t),
+    headers: { "Content-Type": "application/json" }
   })
   .then(res => res.text())
-  .then(txt => {
-    alert("🎉 บันทึกเรียบร้อยแล้ว!");
-    e.target.reset();
-  })
-  .catch(err => {
-    alert("😿 เกิดข้อผิดพลาด: " + err.message);
-  });
-});
+  .then(txt => console.log("✅ บันทึกแล้ว:", txt))
+  .catch(err => console.error("❌ ผิดพลาด:", err.message));
+}
+
+    // โหลดจาก Google Sheets
+    function loadTasksFromSheet() {
+      fetch("https://script.google.com/macros/s/AKfycbz7A5ZWfYNPYFEUFhzLfR9xrzvBC_RpBTWxIRia9RIbD8b4-rj9h9_ANAMlrwzLDJKDOA/exec")
+        .then(res => res.json())
+        .then(data => {
+          tasks = data;
+          saveTasks();
+          renderSchedule();
+        })
+        .catch(err => console.error("❌ โหลดไม่สำเร็จ:", err.message));
+    }
+
+    // ใส่ call เมื่อหน้าเว็บโหลดเสร็จ
+    window.onload = () => {
+      $("date-today").textContent = baseDate.toLocaleDateString("th-TH", {
+        weekday: "long", day: "numeric", month: "long", year: "numeric"
+      });
+
+      tasks = JSON.parse(localStorage.getItem("executive-tasks") || "[]");
+      renderSchedule();
+      loadTasksFromSheet();
+    };
 </script>
 </body>
 </html>
