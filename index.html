@@ -19,7 +19,7 @@
       text-align: center;
     }
     header button {
-      background-color: #ffc107;
+      background-color: #ffbf00;
       border: none;
       padding: 8px 14px;
       border-radius: 4px;
@@ -184,7 +184,7 @@
       cursor: pointer;
     }
     .btn-primary { background: #28a745; color: white; }
-    .btn-danger  { background: #dc3545; color: white; }
+    .btn-danger  { background: #94313b; color: white; }
     .btn-cancel  { background: #6c757d; color: white; }
 
     @media (max-width: 768px) {
@@ -660,7 +660,7 @@ $("date-today").textContent =
    
     //ส่งเข้าชีต
  function sendTaskToSheet(t) {
-  fetch("https://script.google.com/macros/s/AKfycbz7A5ZWfYNPYFEUFhzLfR9xrzvBC_RpBTWxIRia9RIbD8b4-rj9h9_ANAMlrwzLDJKDOA/exec", {
+  fetch("https://script.google.com/macros/s/AKfycbzR8KEgg0n9b-uq96m285wRy1ittfuUvHPrV41AL1p-15Eb_U3HB2muak5CdpISTZG4bw/exec", {
     method: "POST",
     body: JSON.stringify(t),
     headers: { "Content-Type": "application/json" }
@@ -672,7 +672,7 @@ $("date-today").textContent =
 
     // โหลดจาก Google Sheets
     function loadTasksFromSheet() {
-      fetch("https://script.google.com/macros/s/AKfycbz7A5ZWfYNPYFEUFhzLfR9xrzvBC_RpBTWxIRia9RIbD8b4-rj9h9_ANAMlrwzLDJKDOA/exec")
+      fetch("https://script.google.com/macros/s/AKfycbzR8KEgg0n9b-uq96m285wRy1ittfuUvHPrV41AL1p-15Eb_U3HB2muak5CdpISTZG4bw/exec")
         .then(res => res.json())
         .then(data => {
           tasks = data;
