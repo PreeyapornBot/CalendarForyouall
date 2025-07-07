@@ -660,7 +660,7 @@ $("date-today").textContent =
    
     //ส่งเข้าชีต
  function sendTaskToSheet(t) {
-  fetch("https://script.google.com/macros/s/AKfycbwUTBWrndzBuGTohreLvu1VDAi-Ykl7eBaBP2-3u_6kMrSbruUsmkT2ZzU-EK8FBIbTpQ/exec", {
+  fetch("https://script.google.com/macros/s/AKfycbzSEYe36XNDUaqCOxGf8DDBkKleW-fvEmv4moW7CKZoJ_My5RkPE3TxgcxQNOHYa2tq/exec", {
     method: "POST",
     body: JSON.stringify(t),
     headers: { "Content-Type": "application/json" }
@@ -672,7 +672,7 @@ $("date-today").textContent =
 
     // โหลดจาก Google Sheets
     function loadTasksFromSheet() {
-      fetch("https://script.google.com/macros/s/AKfycbwUTBWrndzBuGTohreLvu1VDAi-Ykl7eBaBP2-3u_6kMrSbruUsmkT2ZzU-EK8FBIbTpQ/exec")
+      fetch("https://script.google.com/macros/s/AKfycbzSEYe36XNDUaqCOxGf8DDBkKleW-fvEmv4moW7CKZoJ_My5RkPE3TxgcxQNOHYa2tq/exec")
         .then(res => res.json())
         .then(data => {
           tasks = data;
